@@ -1,0 +1,2 @@
+# friend-core
+Discord Bot
