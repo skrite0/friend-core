@@ -13,30 +13,46 @@ cd_users = {}
 message_log = {}
 
 def process_message(message, user):
-    if not message:
+    if not message or not user:
         return
-    message_lower = message.lower()
-    if user in message_log:
-        message_log[user].append(message)
-    else:
-        message_log[user] = []
-        message_log[user].append(message)
+
+    # iterate through all bad_words    
     for bad_word in bad_words:
-        if bad_word in message_lower:
-            user_exist = check_user(user)
+        if bad_word in message.lower():
+
+            user_exist = get_user(user)
+
+            # log the time the user is on CD for
+            log_user_cd_time(user)
+
+            # get datetime and make it readable for user
             readable_date = datetime.strptime(str(cd_users[user]), '%Y-%m-%d %H:%M:%S.%f')
             readable_date = readable_date.strftime('%B %d, %Y %I:%M%p')
-            if not user_exist:
-                return f"You've said the {bad_word[0]}-word. You are on CD. Your CD will end {readable_date}"
-            else:
-                return f"**Repeat Offense** You've said the {bad_word[0]}-word. Your CD will be extended. Your CD will end {readable_date}"
+
+            # log the user messages that got them on CD
+            log_user_messages(user, message, readable_date, user_exist)
+            
+            # strip the bad word from offensive letters and spit back the return message based on if user is a repeat offender
+            return get_return_message(bad_word[0], readable_date, user_exist)
     
-def check_user(user):
-    if user not in cd_users:
-        cd_users[user] = datetime.now() + timedelta(hours=1)
-        return None
-    cd_users[user] = cd_users[user] + timedelta(hours=1)
-    return True
+def get_return_message(letter, date, user_exist):
+    if not user_exist:
+        return f"You've said the {date}-word. You are on CD. Your CD will end {date}"
+    
+    return f"**Repeat Offense** You've said the {date}-word. Your CD will be extended. Your CD will end {date}"
+
+def log_user_messages(user, message, date, user_exist):
+    if user_exist:
+        message_log[user].append("[" + date + "] " + message)
+        return
+    message_log[user] = []
+    message_log[user].append("[" + date + "] " + message)
+
+def log_user_cd_time(user):
+    if not get_user(user):
+        cd_users[user] = datetime.now() + timedelta(minutes=30)
+        return
+    cd_users[user] = cd_users[user] + timedelta(minutes=30)
 
 def remove_cd(user):
     if user not in cd_users:
