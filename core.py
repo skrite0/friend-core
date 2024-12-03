@@ -32,14 +32,14 @@ def process_message(message, user):
             # log the user messages that got them on CD
             log_user_messages(user, message, readable_date, user_exist)
             
-            # strip the bad word from offensive letters and spit back the return message based on if user is a repeat offender
-            return get_return_message(bad_word[0], readable_date, user_exist)
+            # strip the bad word from offensive letters and spit back the response message based on if user is a repeat offender
+            return get_response_message(bad_word[0], readable_date, user_exist)
     
-def get_return_message(letter, date, user_exist):
+def get_response_message(letter, date, user_exist):
     if not user_exist:
-        return f"You've said the {date}-word. You are on CD. Your CD will end {date}"
+        return f"You've said the {letter}-word. You are on CD. Your CD will end {date}"
     
-    return f"**Repeat Offense** You've said the {date}-word. Your CD will be extended. Your CD will end {date}"
+    return f"**Repeat Offense** You've said the {letter}-word. Your CD will be extended. Your CD will end {date}"
 
 def log_user_messages(user, message, date, user_exist):
     if user_exist:
