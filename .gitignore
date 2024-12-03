@@ -1,1 +1,5 @@
 bad_words.txt
+.replit
+poetry.lock
+pyproject.toml
+uv.lock
