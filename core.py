@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+import pytz
+
 
 def read_file_to_list(filename):
     with open(filename, 'r') as file:
@@ -8,6 +10,8 @@ def read_file_to_list(filename):
     return lines
 
 bad_words = read_file_to_list('bad_words.txt')
+
+est = pytz.timezone('US/Eastern')
 
 cd_users = {}
 message_log = {}
@@ -26,14 +30,15 @@ def process_message(message, user):
             log_user_cd_time(user)
 
             # get datetime and make it readable for user
-            readable_date = datetime.strptime(str(cd_users[user]), '%Y-%m-%d %H:%M:%S.%f')
-            readable_date = readable_date.strftime('%B %d, %Y %I:%M%p')
+            readable_date = cd_users[user].strftime('%B %d, %Y %I:%M %p %Z')
 
             # log the user messages that got them on CD
             log_user_messages(user, message, readable_date, user_exist)
             
             # strip the bad word from offensive letters and spit back the response message based on if user is a repeat offender
             return get_response_message(bad_word[0], readable_date, user_exist)
+        else:
+            remove_cd(user)
     
 def get_response_message(letter, date, user_exist):
     if not user_exist:
@@ -50,14 +55,17 @@ def log_user_messages(user, message, date, user_exist):
 
 def log_user_cd_time(user):
     if not get_user(user):
-        cd_users[user] = datetime.now() + timedelta(minutes=30)
+        current_time = datetime.now(pytz.utc)
+        cd_users[user] = current_time.astimezone(est) + timedelta(minutes=30)
         return
     cd_users[user] = cd_users[user] + timedelta(minutes=30)
 
 def remove_cd(user):
     if user not in cd_users:
         return
-    if datime.now() > cd_users[user]:
+    current_time = datetime.now(pytz.utc)
+    current_time = current_time.astimezone(est)
+    if current_time > cd_users[user]:
         del cd_users[user]
 
 def get_user(user):
