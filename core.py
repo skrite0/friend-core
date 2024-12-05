@@ -22,7 +22,7 @@ def process_message(message, user):
 
     # iterate through all bad_words    
     for bad_word in bad_words:
-        if bad_word in message.lower():
+        if bad_word in message.lower().replace(' ', ''):
 
             user_exist = get_user(user)
 
