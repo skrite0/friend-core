@@ -20,31 +20,52 @@ def process_message(message, user):
     if not message or not user:
         return
 
+    cleaned_message = message.lower().replace(' ', '')
+
     # iterate through all bad_words    
-    for bad_word in bad_words:
-        if bad_word in message.lower().replace(' ', ''):
+    bw_characters = [bad_word[0] for bad_word in bad_words if bad_word in cleaned_message]
 
-            user_exist = get_user(user)
+    if bw_characters:
+        user_exist = get_user(user)
 
-            # log the time the user is on CD for
-            log_user_cd_time(user)
+        # log the time the user is on CD for
+        log_user_cd_time(user, len(bw_characters))
 
-            # get datetime and make it readable for user
-            readable_date = cd_users[user].strftime('%B %d, %Y %I:%M %p %Z')
+        # get datetime and make it readable for user
+        readable_date = cd_users[user].strftime('%B %d, %Y %I:%M %p %Z')
 
-            # log the user messages that got them on CD
-            log_user_messages(user, message, readable_date, user_exist)
-            
-            # strip the bad word from offensive letters and spit back the response message based on if user is a repeat offender
-            return get_response_message(bad_word[0], readable_date, user_exist)
-        else:
-            remove_cd(user)
+        # log the user messages that got them on CD
+        log_user_messages(user, message, readable_date, user_exist)
+        
+        # strip the bad word from offensive letters and spit back the response message based on if user is a repeat offender
+        return get_response_message(bw_characters, readable_date, user_exist)
+    else:
+        remove_cd(user)
     
-def get_response_message(letter, date, user_exist):
-    if not user_exist:
-        return f"You've said the {letter}-word. You are on CD. Your CD will end {date}"
-    
-    return f"**Repeat Offense** You've said the {letter}-word. Your CD will be extended. Your CD will end {date}"
+def get_response_message(bw_characters, date, user_exist):
+
+    formatted_string = ''
+
+    # Format each element as "<letter>-word"
+    if len(bw_characters) == 1:
+        # Handle single element
+        formatted_string = f"{bw_characters[0]}-word"
+    elif len(bw_characters) == 2:
+        # Handle exactly two elements
+        formatted_string = f"{bw_characters[0]}-word and the {bw_characters[1]}-word"
+    else:
+        # Handle three or more elements
+        formatted_string = ", ".join(f"{letter}-word" for letter in bw_characters[:-1])
+        formatted_string += f", and the {bw_characters[-1]}-word"
+
+    if not user_exist and len(bw_characters) == 1:
+        return f"You've said the {formatted_string}. You are on CD. Your CD will end {date}"
+    elif not user_exist and len(bw_characters) > 1:
+        return f"You've used two abilities at once by saying the {formatted_string}. You are on a CD. Your CD will end {date}"
+    elif user_exist and len(bw_characters) == 1:
+        return f"**Repeat Offense** You've said the {formatted_string}. Your CD will be extended. Your CD will end {date}"
+    elif user_exist and len(bw_characters) > 1:
+        return f"**Repeat Offense** You've used two abilities at once by saying the {formatted_string}. Your CD will be extended. Your CD will end {date}"
 
 def log_user_messages(user, message, date, user_exist):
     if user_exist:
@@ -53,12 +74,18 @@ def log_user_messages(user, message, date, user_exist):
     message_log[user] = []
     message_log[user].append("[" + date + "] " + message)
 
-def log_user_cd_time(user):
+def log_user_cd_time(user, char_len):
     if not get_user(user):
         current_time = datetime.now(pytz.utc)
-        cd_users[user] = current_time.astimezone(est) + timedelta(minutes=30)
+        if char_len == 1:
+            cd_users[user] = current_time.astimezone(est) + timedelta(minutes=30)
+        else:
+            cd_users[user] = current_time.astimezone(est) + timedelta(hours=1)
         return
-    cd_users[user] = cd_users[user] + timedelta(minutes=30)
+    if char_len == 1:
+        cd_users[user] = cd_users[user] + timedelta(minutes=30)
+    else:
+        cd_users[user] = cd_users[user] + timedelta(hours=1)
 
 def remove_cd(user):
     if user not in cd_users:
@@ -78,3 +105,13 @@ def get_message_log(user):
     for messages in message_log[user]:
         response += messages + '\n'
     return response
+
+def get_info():
+    bad_words = get_bad_words()
+    response = f'Hello, nice to meet you friend! I simply work by helping you remember to be kind. You can say a _bad word_ but you will be placed in a Cool Down (CD) state. If you are in CD the next time you try to saw a _bad word_ your CD state will be extended:\n* Standard one word CDs are 30 mins\n* More than one CDs in one message are 1 hour\nThe bad words are as follows:\n{bad_words}'
+    return response
+
+def get_bad_words():
+    response = [bad_word + '\n' for bad_word in bad_words]
+    response = ''.join(response)
+    return '```' + response + '```'

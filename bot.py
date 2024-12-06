@@ -4,7 +4,7 @@ import os
 import discord
 from discord.ext import commands
 
-from core import process_message, get_message_log, get_user
+from core import process_message, get_message_log, get_user, get_info
 
 socket.gethostbyname("")
 TOKEN = os.getenv('FRIEND_TOKEN_DISCORD')
@@ -25,6 +25,11 @@ async def on_message(message):
 
     if message.content == '!crime':
         response = get_message_log(message.author)
+        await message.channel.send(f'{response}')
+        return
+
+    if message.content == '!info':
+        response = get_info()
         await message.channel.send(f'{response}')
         return
             
