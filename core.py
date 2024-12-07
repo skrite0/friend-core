@@ -25,7 +25,7 @@ def process_message(message, user):
 
     ignore_characters = [ignore_word for ignore_word in ignore_words if ignore_word in cleaned_message]
 
-    if ignore_characters
+    if ignore_characters:
         return
 
     # iterate through all bad_words    
