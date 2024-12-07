@@ -114,7 +114,7 @@ def get_message_log(user):
 
 def get_info():
     bad_words = get_bad_words()
-    response = f'Hello, nice to meet you friend! I simply work by helping you remember to be kind. You can say a _bad word_ but you will be placed in a Cool Down (CD) state. If you are in CD the next time you try to saw a _bad word_ your CD state will be extended:\n* Standard one word CDs are 30 mins\n* More than one CDs in one message are 1 hour\nThe bad words are as follows:\n{bad_words}'
+    response = f'Hello, nice to meet you friend! I simply work by helping you remember to be kind. You can say a _bad word_ but you will be placed in a Cool Down (CD) state. If you are in CD the next time you try to saw a _bad word_ your CD state will be extended:\n* Standard one word CDs are 30 mins\n* More than one CDs in one message are 1 hour\nThe bad words are as follows:\n{bad_words}\nIf you want to bypass the bot you can use the `!ult` command.'
     return response
 
 def get_bad_words():
