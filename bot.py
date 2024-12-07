@@ -32,6 +32,9 @@ async def on_message(message):
         response = get_info()
         await message.channel.send(f'{response}')
         return
+
+    if message.content.startswith('!ult'):
+        return
             
     user_exist = get_user(message.author)
 

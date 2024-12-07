@@ -10,6 +10,7 @@ def read_file_to_list(filename):
     return lines
 
 bad_words = read_file_to_list('bad_words.txt')
+ignore_words = read_file_to_list('ignore_words.txt')
 
 est = pytz.timezone('US/Eastern')
 
@@ -21,6 +22,11 @@ def process_message(message, user):
         return
 
     cleaned_message = message.lower().replace(' ', '')
+
+    ignore_characters = [ignore_word for ignore_word in ignore_words if ignore_word in cleaned_message]
+
+    if ignore_characters
+        return
 
     # iterate through all bad_words    
     bw_characters = [bad_word[0] for bad_word in bad_words if bad_word in cleaned_message]
@@ -61,11 +67,11 @@ def get_response_message(bw_characters, date, user_exist):
     if not user_exist and len(bw_characters) == 1:
         return f"You've said the {formatted_string}. You are on CD. Your CD will end {date}"
     elif not user_exist and len(bw_characters) > 1:
-        return f"You've used two abilities at once by saying the {formatted_string}. You are on a CD. Your CD will end {date}"
+        return f"You've used multiple abilities at once by saying the {formatted_string}. You are on a CD. Your CD will end {date}"
     elif user_exist and len(bw_characters) == 1:
         return f"**Repeat Offense** You've said the {formatted_string}. Your CD will be extended. Your CD will end {date}"
     elif user_exist and len(bw_characters) > 1:
-        return f"**Repeat Offense** You've used two abilities at once by saying the {formatted_string}. Your CD will be extended. Your CD will end {date}"
+        return f"**Repeat Offense** You've used multiple abilities at once by saying the {formatted_string}. Your CD will be extended. Your CD will end {date}"
 
 def log_user_messages(user, message, date, user_exist):
     if user_exist:

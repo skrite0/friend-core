@@ -1,4 +1,5 @@
 bad_words.txt
+ignore_words.txt
 .replit
 poetry.lock
 pyproject.toml
