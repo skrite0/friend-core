@@ -17,8 +17,27 @@ est = pytz.timezone('US/Eastern')
 cd_users = {}
 message_log = {}
 
+def set_response(code, response_message):
+    return {
+        'code': code,
+        'message': response_message
+    }
+
 def process_message(message, user):
-    if not message or not user:
+
+    code = 0
+    content = 'None'
+
+    if message == '!crime':
+        code = 2
+        content = get_message_log(user)
+
+    elif message == '!info':
+        code = 3
+        content = get_info()
+
+    elif message.startswith('!ult'):
+        code = 4
         return
 
     cleaned_message = message.lower().replace(' ', '')
@@ -33,6 +52,10 @@ def process_message(message, user):
 
     if bw_characters:
         user_exist = get_user(user)
+        if not user_exist:
+            code = 5
+        else:
+            code = 1
 
         # log the time the user is on CD for
         log_user_cd_time(user, len(bw_characters))
@@ -41,12 +64,17 @@ def process_message(message, user):
         readable_date = cd_users[user].strftime('%B %d, %Y %I:%M %p %Z')
 
         # log the user messages that got them on CD
-        log_user_messages(user, message, readable_date, user_exist)
+        log_user_messages(user, message, user_exist)
         
         # strip the bad word from offensive letters and spit back the response message based on if user is a repeat offender
-        return get_response_message(bw_characters, readable_date, user_exist)
+        content = get_response_message(bw_characters, readable_date, user_exist)
     else:
         remove_cd(user)
+
+    response = set_response(code, content)
+    return response
+
+    
     
 def get_response_message(bw_characters, date, user_exist):
 
@@ -73,12 +101,15 @@ def get_response_message(bw_characters, date, user_exist):
     elif user_exist and len(bw_characters) > 1:
         return f"**Repeat Offense** You've used multiple abilities at once by saying the {formatted_string}. Your CD will be extended. Your CD will end {date}"
 
-def log_user_messages(user, message, date, user_exist):
+def log_user_messages(user, message, user_exist):
+    current_time = datetime.now(pytz.utc).astimezone(est)
+    current_time = current_time.strftime('%B %d, %Y %I:%M %p %Z')
+
     if user_exist:
-        message_log[user].append("[" + date + "] " + message)
+        message_log[user].append("[" + current_time + "] " + message)
         return
     message_log[user] = []
-    message_log[user].append("[" + date + "] " + message)
+    message_log[user].append("[" + current_time + "] " + message)
 
 def log_user_cd_time(user, char_len):
     if not get_user(user):

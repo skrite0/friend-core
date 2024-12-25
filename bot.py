@@ -20,31 +20,20 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user:
+    if message.author == bot.user or not message.content:
         return
-
-    if message.content == '!crime':
-        response = get_message_log(message.author)
-        await message.channel.send(f'{response}')
-        return
-
-    if message.content == '!info':
-        response = get_info()
-        await message.channel.send(f'{response}')
-        return
-
-    if message.content.startswith('!ult'):
-        return
-            
-    user_exist = get_user(message.author)
 
     response = process_message(message.content, message.author)
-    if not response:
-        return
-    await message.channel.send(f'{message.author.mention} {response}')
 
-    if user_exist:
+    if not response or response['code'] == 0:
+        return
+    elif response['code'] == 1:
         await message.delete()
+    elif response['code'] == 4:
+        return
+
+    await message.channel.send(f'{response['message']}')
+    return
 
 # Run the bot with the token
 bot.run(TOKEN)
